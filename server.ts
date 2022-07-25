@@ -7,7 +7,7 @@ import { TweetCtrl } from './controllers/TweetController'
 import { UserCtrl } from './controllers/UserController'
 import { passport } from './core/passport'
 import handleValidationErrors from './utils/handleValidationErrors'
-import { createTweetValidation, registerValidation } from './validations'
+import { createTweetValidation, registerValidation, updateProfileValidation } from './validations'
 import cors from 'cors'
 import multer from 'multer'
 import bodyParser from 'body-parser'
@@ -43,6 +43,7 @@ app.patch('/tweets/:id', passport.authenticate('jwt', { session:false}), createT
 app.post('/auth/signup', registerValidation, handleValidationErrors, UserCtrl.create)
 app.get('/auth/verify', UserCtrl.verify)
 app.post('/auth/signin', passport.authenticate('local', { session:false}), UserCtrl.afterLogin)
+app.patch('/auth/:id', passport.authenticate('jwt', { session:false}), UserCtrl.update)
 /* app.patch('/users', UserCtrl.update)
 app.delete('/users', UserCtrl.delete)
  */

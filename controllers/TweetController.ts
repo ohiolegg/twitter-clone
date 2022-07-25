@@ -56,7 +56,7 @@ class TweetController {
               })
               return
           }
-          const tweets = await TweetModel.find({user: userId}).populate('user').exec()
+          const tweets = await TweetModel.find({user: userId}).sort({'createdAt': -1}).populate('user').exec()
           
           if(!tweets){
               res.status(404).json({
@@ -94,7 +94,6 @@ class TweetController {
                 res.json(await tweet.populate('user'))
             }
         } catch(e){
-            console.log(e)
             res.status(500).json({
                 message: "Couldn't create the tweet"
             })

@@ -39,9 +39,11 @@ export const SideMenu: React.FC<SideMenuProps> = ({
     <>
       <ul className={classes.sideMenuList}>
         <li className={classes.sideMenuListItem}>
-          <IconButton className={classes.logo} aria-label="" color="primary">
-            <TwitterIcon className={classes.logoIcon} />
-          </IconButton>
+          <Link to = '/'>
+            <IconButton className={classes.logo} aria-label="" color="primary">
+              <TwitterIcon className={classes.logoIcon} />
+            </IconButton>
+          </Link>
         </li>
         <li className={classes.sideMenuListItem}>
           <div>
@@ -105,12 +107,14 @@ export const SideMenu: React.FC<SideMenuProps> = ({
         <li className={classes.sideMenuListItem}>
           <div>
             <UserIcon className={classes.sideMenuListItemIcon} />
-
-            <Hidden smDown>
-              <Typography className={classes.sideMenuListItemLabel} variant="h6">
-                <Link to = {`/user/${data?._id}`}>Профиль</Link>
-              </Typography>
-            </Hidden>
+            
+            <Link to = {`/user/${data?._id}`}>
+              <Hidden smDown>
+                <Typography className={classes.sideMenuListItemLabel} variant="h6">
+                  Профиль
+                </Typography>
+              </Hidden>
+            </Link>
 
           </div>
         </li>

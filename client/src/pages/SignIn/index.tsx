@@ -83,7 +83,11 @@ export const useStylesSignIn = makeStyles((theme: Theme) => ({
   },
   loginSideField: {
     marginBottom: '30px !important',
-    background: 'none'
+    background: '#fff',
+    border: 'solid 1px rgb(207, 217, 222)',
+    '& inpit::after': {
+      content: 'none'
+    },
   },
   modalTitle: {
     fontSize: 24

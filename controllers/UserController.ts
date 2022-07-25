@@ -40,8 +40,6 @@ class UserController {
                 return
             }
 
-            console.log(user.password, user.confirmHash)
-
             res.json({
                 user
             })
@@ -91,7 +89,30 @@ class UserController {
             })
 
         } catch(e){
-            console.log(e)
+            res.status(500).json({
+                message: "Couldn't do the registration"
+            })
+        }
+    }
+
+    async update(req:express.Request, res: express.Response){
+        try{
+
+            const userId = req.params.id
+
+            await UserModel.findOneAndUpdate({
+                _id: userId
+            }, {
+                fullname: req.body.fullname,
+                location: req.body.location,
+                about: req.body.about,
+                website: req.body.website,    
+            })
+
+            res.json({
+                success: true
+            })
+        } catch(e){
             res.status(500).json({
                 message: "Couldn't do the registration"
             })
@@ -132,7 +153,6 @@ class UserController {
 
     async afterLogin(req: express.Request, res: express.Response) : Promise<void> {
         try{
-            console.log(req.body)
             const user = req.user ? (req.user as UserModelDocumentInterface).toJSON() : undefined
             res.json({
                 ...user,
