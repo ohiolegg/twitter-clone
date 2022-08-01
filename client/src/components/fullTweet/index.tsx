@@ -1,7 +1,7 @@
 import React from 'react'
 
 import CommentIcon from '@mui/icons-material/ChatBubbleOutline'
-import RepostIcon from '@mui/icons-material/Reply';
+import RepostIcon from '@mui/icons-material/Reply'
 import ShareIcon from '@mui/icons-material/IosShare'
 import LikeIcon from '@mui/icons-material/FavoriteBorder'
 
@@ -17,6 +17,10 @@ import classNames from 'classnames'
 import ImageList from '../ImageList'
 
 import mediumZoom from 'medium-zoom'
+import { Comment } from '../../redux/slices/state'
+import { useAppDispatch, useAppSelector } from '../../hooks/redux'
+import { TweetBackForm } from '../TweetBackForm'
+import { setCommentsByPost } from '../../redux/slices/tweetSlice'
 
 interface fullTweetProps {
   classes: ReturnType<typeof useHomeStyles>;
@@ -41,6 +45,10 @@ export const FullTweet: React.FC<fullTweetProps> = ({
 
   const [tweet, setTweet] = React.useState<fullTweet>() 
   const [isLoaded, setLoaded] = React.useState<boolean>(false)
+  const { comments } = useAppSelector(state => state.tweets)
+  const dispatch = useAppDispatch()
+
+  const data = useAppSelector(state => state.auth.data)
 
   const params : { id?: string } = useParams()
   const id = params.id
@@ -49,6 +57,7 @@ export const FullTweet: React.FC<fullTweetProps> = ({
     setLoaded(false)
     axios.get(`/tweets/${id}`).then(({data}) => {
         setTweet(data.tweet)
+        dispatch(setCommentsByPost(data.comments))
         setLoaded(true)
     })
   }, [id])
@@ -74,6 +83,7 @@ export const FullTweet: React.FC<fullTweetProps> = ({
       <Paper className={classes.fullTweet}>
         <div className={classes.tweetsHeaderUser}>
           <Avatar
+            src = {tweet.user?.avatarUrl}
             className={classes.tweetAvatar}
             alt={`Аватарка пользователя ${tweet.user.fullname}`}
           />
@@ -116,42 +126,26 @@ export const FullTweet: React.FC<fullTweetProps> = ({
         </div>
       </Paper>
       <Divider />
-      <Tweet
-        isEditable = {false}
-        _id="1"
-        text="Any more to move? You might need to adjust your stretching routines!"
-        createdAt={new Date().toString()}
-        user={{
-          fullname: 'Arlene Andrews',
-          username: 'ArleneAndrews_1',
-          avatarUrl: '/d'
-        }}
-        classes={classes}
-      />
-      <Tweet
-        isEditable = {false}
-        _id="1"
-        text="Any more to move? You might need to adjust your stretching routines!"
-        createdAt={new Date().toString()}
-        user={{
-          fullname: 'Arlene Andrews',
-          username: 'ArleneAndrews_1',
-          avatarUrl: '/d'
-        }}
-        classes={classes}
-      />
-      <Tweet
-        isEditable = {false}
-        _id="1"
-        text="Any more to move? You might need to adjust your stretching routines!"
-        createdAt={new Date().toString()}
-        user={{
-          fullname: 'Arlene Andrews',
-          username: 'ArleneAndrews_1',
-          avatarUrl: '/d'
-        }}
-        classes={classes}
-      />
+      
+      <div className = {classes.tweetBack}>
+        <TweetBackForm classes = {classes} tweetId = {tweet._id} originalUser = {tweet.user.username}/>
+      </div>
+
+      <Divider />
+
+      {
+        comments && comments.map(comment => {
+          console.log(comment)
+          return(
+          <Tweet
+            key={comment._id}
+            likes = {0}
+            isEditable = {String(data?._id) === tweet.user._id}
+            {...comment}
+            classes={classes}
+          />
+        )})
+      }
     </>
   );
 

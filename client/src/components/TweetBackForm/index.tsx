@@ -3,17 +3,17 @@ import classNames from 'classnames'
 import { useHomeStyles } from '../../pages/Home/theme' 
 import { Alert, Avatar, Button, CircularProgress, TextareaAutosize } from '@mui/material'
 
-import MoodIcon from '@mui/icons-material/Mood'
 import { useAppDispatch, useAppSelector } from '../../hooks/redux'
-import { addTweet, setAddFormState } from '../../redux/slices/tweetSlice'
+import { addComment, addTweet, setAddFormState } from '../../redux/slices/tweetSlice'
 import { AddFormState } from '../../redux/slices/state'
 import UploadImages from '../UploadImages'
 import { uploadImage } from '../../utils/uploadImage'
 
-interface AddTweetFormProps {
+interface TweetBackFormProps {
   classes: ReturnType<typeof useHomeStyles>;
   maxRows?: number;
-  placeholder?: string;
+  originalUser: string;
+  tweetId: string;
 }
 
 export interface imageObj {
@@ -23,10 +23,11 @@ export interface imageObj {
 
 const MAX_LENGTH = 280;
 
-export const AddTweetForm: React.FC<AddTweetFormProps> = ({
+export const TweetBackForm: React.FC<TweetBackFormProps> = ({
   classes,
   maxRows,
-  placeholder
+  tweetId,
+  originalUser
 }): React.ReactElement => {
 
   const [text, setText] = React.useState<string>('')
@@ -45,7 +46,7 @@ export const AddTweetForm: React.FC<AddTweetFormProps> = ({
     )
   }
 
-  const handleClickAddTweet = async () : Promise<void> => {
+  const handleClickAddComment = async () : Promise<void> => {
     let result : string[] = []
     dispatch(setAddFormState(AddFormState.LOADING))
     for (let i = 0; i < images.length; i++){
@@ -54,13 +55,17 @@ export const AddTweetForm: React.FC<AddTweetFormProps> = ({
       result.push(url)
     }
 
-    dispatch(addTweet({text, images: result}))
+    dispatch(addComment({text, images: result, tweet: tweetId}))
+
     setText('')
     setImages([])
   }
 
   return (
     <div>
+      
+        <p style = {{fontSize: 14, color: 'rgb(83, 100, 113)'}}>Tweet back <span style={{color: 'rgb(29, 161, 242)'}}>@{originalUser}</span></p>
+      
       <div className={classes.addFormBody}>
         <Avatar
           className={classes.tweetAvatar}
@@ -70,7 +75,7 @@ export const AddTweetForm: React.FC<AddTweetFormProps> = ({
         <TextareaAutosize
           onChange={handleChangeTextare}
           className={classes.addFormTextarea}
-          placeholder={placeholder || "What's happening?"}
+          placeholder={"Tweet back"}
           value={text}
           maxRows ={maxRows}
         />
@@ -105,7 +110,7 @@ export const AddTweetForm: React.FC<AddTweetFormProps> = ({
             </>
           )}
           <Button
-            onClick={handleClickAddTweet}
+            onClick={handleClickAddComment}
             disabled={!text || text.length >= MAX_LENGTH}
             color="primary"
             variant="contained">

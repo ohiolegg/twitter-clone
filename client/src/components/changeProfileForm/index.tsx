@@ -1,7 +1,8 @@
 import React from 'react'
 import classNames from 'classnames'
 import { useHomeStyles } from '../../pages/Home/theme' 
-import { Alert, Avatar, Button, CircularProgress, TextareaAutosize, AlertColor, FormControl, FormGroup, TextField } from '@mui/material'
+import { Alert, Avatar, Button, CircularProgress, TextareaAutosize, AlertColor, FormControl, FormGroup, TextField, Paper } from '@mui/material'
+import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
 
 import { useAppDispatch, useAppSelector } from '../../hooks/redux'
 import { addTweet, setAddFormState } from '../../redux/slices/tweetSlice'
@@ -17,6 +18,7 @@ import { useStylesSignIn } from '../../pages/SignIn'
 import axios from 'axios'
 import { Notification } from '../Notification'
 import { fetchAuthMe } from '../../redux/slices/authSlice'
+import { uploadImage } from '../../utils/uploadImage'
 
 interface changeProfileProps {
   userData?: User,
@@ -26,7 +28,9 @@ interface changeProfileFormProps{
     fullname: string;
     location?:string
     about?:string
-    website?:string
+    website?:string,
+    avatarUrl?: string;
+    bannerUrl?: string;
 }
   
 const ChangeProfileFormSchema = yup.object().shape({
@@ -36,16 +40,87 @@ const ChangeProfileFormSchema = yup.object().shape({
     website: yup.string().url()
 })
 
-const MAX_LENGTH = 160
+export interface imageObj {
+    file: File;
+    blobUrl: string
+}
 
 export const ChangeProfileForm: React.FC<changeProfileProps> = ({userData}): React.ReactElement => {
 
-  const [text, setText] = React.useState<string>('')
-  const textLimitPercent = Math.round((text.length / MAX_LENGTH ) * 100)
-  const textCount = MAX_LENGTH - text.length 
-
   const [openNotification, setOpenNotification] = React.useState<boolean>(false);
-  const [notificationObj, setNotificationObj] = React.useState<{ text: string; type: AlertColor }>();
+  const [notificationObj, setNotificationObj] = React.useState<{ text: string; type: AlertColor }>()
+  const [avatar, setAvatar] = React.useState<imageObj | null>(null)
+  const [banner, setBanner] = React.useState<imageObj | null>(null)
+
+  const inputAvatarRef = React.useRef<HTMLInputElement>(null) 
+  const inputBannerRef = React.useRef<HTMLInputElement>(null)
+
+  const handleClickAddImage = () => {
+    if(inputAvatarRef.current){
+        inputAvatarRef.current.click()
+    }
+  }
+
+  const handleClickAddImage2 = () => {
+    if(inputBannerRef.current){
+        inputBannerRef.current.click()
+    }
+  }
+
+  const removeAvatar = () => {
+    setAvatar(null)
+  }
+  const removeBanner = () => {
+    setBanner(null)
+  }
+
+  const handleChangeAvatar = React.useCallback((e: Event) => {       
+        if(e.target){
+            const target = (e.target as HTMLInputElement)
+            const file = target.files?.[0]
+            if(file){
+                const fileObj = new Blob([file])
+                setAvatar({
+                    blobUrl: URL.createObjectURL(fileObj),
+                    file
+                })
+            }
+        }
+  }, []) 
+
+  const handleChangeBanner = React.useCallback((e: Event) => {       
+    if(e.target){
+        const target = (e.target as HTMLInputElement)
+        const file = target.files?.[0]
+        if(file){
+            const fileObj = new Blob([file])
+            setBanner({
+                blobUrl: URL.createObjectURL(fileObj),
+                file
+            })
+        }
+    }
+}, []) 
+
+  React.useEffect(() => {
+    if(inputAvatarRef.current){
+        inputAvatarRef.current.addEventListener('change', handleChangeAvatar)
+    }
+
+    if(inputBannerRef.current){
+        inputBannerRef.current.addEventListener('change', handleChangeBanner)
+    }
+
+    return () => {
+        if(inputAvatarRef.current){
+            inputAvatarRef.current.removeEventListener('change', handleChangeAvatar)
+        }
+
+        if(inputBannerRef.current){
+            inputBannerRef.current.removeEventListener('change', handleChangeBanner)
+        }
+    }
+  }, [])
 
   const handlepenNotification = (text: string, type: AlertColor) => {
     setNotificationObj({
@@ -57,12 +132,6 @@ export const ChangeProfileForm: React.FC<changeProfileProps> = ({userData}): Rea
 
   const dispatch = useAppDispatch()
 
-  const handleChangeTextare = (e: React.FormEvent<HTMLTextAreaElement>) : void => {
-    if(e.currentTarget)(
-      setText(e.currentTarget.value)
-    )
-  }
-
   const classes = useStylesSignIn()
 
   const { register, handleSubmit, formState: { errors }, control } = useForm<changeProfileFormProps>({
@@ -70,7 +139,22 @@ export const ChangeProfileForm: React.FC<changeProfileProps> = ({userData}): Rea
   })
 
   const onSubmit = async (formData : changeProfileFormProps) => {
+
     try{
+        if(avatar){
+            const avatarFile = avatar.file
+            const { url } = await uploadImage(avatarFile)
+            formData.avatarUrl = url
+        }
+
+        if(banner){
+            const bannerFile = banner.file
+            const { url } = await uploadImage(bannerFile)
+            formData.bannerUrl = url
+        }
+
+        console.log(formData)
+
         const {data} : any = await axios.patch(`/auth/${userData?._id}`, formData)
 
         if(!data){
@@ -87,14 +171,44 @@ export const ChangeProfileForm: React.FC<changeProfileProps> = ({userData}): Rea
 
   return (
     <div>
-        <div className="user__header" style = {{width: '150%', marginLeft: '-25%'}}></div>
+        <Paper className="user__header" style = {{width: '120%', marginLeft: '-10%', background: 'blue', backgroundPosition: 'center', position: 'relative', backgroundImage: `url(${banner ? banner.blobUrl :userData?.bannerUrl})`, backgroundSize: 'cover'}}> 
+            {
+                banner ? (
+                    <>
+                        <IconButton onClick = {removeBanner} color="primary" style = {{position: 'absolute', top: '5%', right: '22%', backgroundColor: 'rgba(15, 20, 25, 0.75)'}}>
+                            <CloseIcon style={{ fontSize: 26, cursor: 'pointer', fill: '#fff' }} />
+                        </IconButton>
+
+                        <IconButton onClick = {handleClickAddImage2} color="primary" style = {{position: 'absolute', top: '5%', right: '12%', backgroundColor: 'rgba(15, 20, 25, 0.75)'}}>
+                            <AddAPhotoIcon style={{ fontSize: 26, cursor: 'pointer', fill: '#fff' }} />
+                        </IconButton>
+                    </>
+
+                ) : (
+                    <IconButton onClick = {handleClickAddImage2} color="primary" style = {{position: 'absolute', top: '5%', right: '12%', backgroundColor: 'rgba(15, 20, 25, 0.75)'}}>
+                        <AddAPhotoIcon style={{ fontSize: 26, cursor: 'pointer', fill: '#fff' }} />
+                    </IconButton>
+                )
+                
+            }
+            <input ref = {inputBannerRef} type = "file" id = "upload-input" hidden/>
+        </Paper>
         <div style={{width: 550}}>
             <div style = {{position: 'relative'}}>
-            <Avatar style = {{width: 140, height: 140, border: '4px solid white', marginTop: -70}} src = {userData?.avatarUrl}/>
-
-            <IconButton color="primary" style = {{position: 'absolute', top: '35%', left: '10%', backgroundColor: 'rgba(15, 20, 25, 0.75)'}}>
-                <CloseIcon style={{ fontSize: 26, cursor: 'pointer', fill: '#fff' }} />
-            </IconButton>
+            <Avatar onClick = {handleClickAddImage} style = {{width: 140, height: 140, border: '4px solid white', marginTop: -70, cursor: 'pointer'}} src = {avatar ? avatar.blobUrl :userData?.avatarUrl}/>
+            <input ref = {inputAvatarRef} type = "file" id = "upload-input" hidden/>
+            {
+                avatar ? (
+                    <IconButton onClick = {removeAvatar} color="primary" style = {{position: 'absolute', top: '35%', left: '10%', backgroundColor: 'rgba(15, 20, 25, 0.75)'}}>
+                        <CloseIcon style={{ fontSize: 26, cursor: 'pointer', fill: '#fff' }} />
+                    </IconButton>
+                ) : (
+                    <IconButton onClick = {handleClickAddImage} color="primary" style = {{position: 'absolute', top: '35%', left: '10%', backgroundColor: 'rgba(15, 20, 25, 0.75)'}}>
+                        <AddAPhotoIcon style={{ fontSize: 26, cursor: 'pointer', fill: '#fff' }} />
+                    </IconButton>
+                )
+                
+            }
             </div>
             <form style = {{marginTop: 50}} onSubmit = {handleSubmit(onSubmit)}>
                 <FormControl className={classes.loginFormControl} component="fieldset" fullWidth>

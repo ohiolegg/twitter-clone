@@ -1,6 +1,8 @@
-import { UserModelInterface } from "../models/UserModel"
+
+import UserModel, { UserModelInterface } from "../models/UserModel"
 import express from 'express'
-import TweetModel, { TweetModelDocumentInterface, TweetModelInterface } from "../models/TweetModel"
+import TweetModel, { TweetModelDocumentInterface } from "../models/TweetModel"
+import CommentModel from "../models/CommentModel"
 
 class TweetController {
     async index(req: express.Request, res: express.Response) : Promise<void> {
@@ -28,6 +30,7 @@ class TweetController {
                 return
             }
             const tweet = await TweetModel.findById(id).populate('user').exec()
+            const comments = await CommentModel.find({tweet: id}).populate('tweet').populate('user').exec()
             
             if(!tweet){
                 res.status(404).json({
@@ -37,7 +40,8 @@ class TweetController {
             }
 
             res.json({
-                tweet
+                tweet,
+                comments
             })
             
         }catch(err){
@@ -84,7 +88,8 @@ class TweetController {
                 const data : any = new TweetModel({
                     text: req.body.text,
                     images: req.body.images,
-                    user: user._id
+                    user: user._id,
+                    likes: 0
                 })
 
                 const tweet = await data.save()
@@ -128,6 +133,113 @@ class TweetController {
         }
     }
 
+    async like(req: express.Request, res: express.Response): Promise<void> {
+      try {
+        const user = req.user as UserModelInterface;
+
+        if (user) {
+          const tweetId = req.params.id
+          
+          if(user.likedPosts.find(item => item.toString() === tweetId)){
+            user.likedPosts.forEach((item, i) => {
+              if(item.toString() === tweetId){
+                UserModel.findByIdAndUpdate({
+                  _id: user._id
+                },{
+                  $pull: { 'likedPosts': user.likedPosts[i]}
+                },{
+                  returnDocument: 'after'
+                }, (err, doc) => {
+                  if(err){
+                    return res.status(500).json({
+                        message: "Couldn't like the tweet"
+                    }) 
+                  }
+      
+                  if(!doc){
+                      return res.status(404).json({
+                          message: 'Tweet was not found'
+                      })
+                  }
+                })
+              }
+            })
+
+            TweetModel.findByIdAndUpdate({
+              _id: tweetId
+            }, {
+              $inc: {likes: -1}
+            },{
+              returnDocument: 'after'
+            }, (err, doc) => {
+              if(err){
+                return res.status(500).json({
+                    message: "Couldn't like the tweet"
+                }) 
+              }
+  
+              if(!doc){
+                  return res.status(404).json({
+                      message: 'Tweet was not found'
+                  })
+              }
+            })
+
+            res.send();
+          }
+
+          if(!user.likedPosts.find(item => item.toString() === tweetId)){
+            UserModel.findByIdAndUpdate({
+              _id: user._id
+            },{
+              $push: { 'likedPosts': tweetId}
+            },{
+              returnDocument: 'after'
+            }, (err, doc) => {
+              if(err){
+                return res.status(500).json({
+                    message: "Couldn't like the tweet"
+                }) 
+              }
+  
+              if(!doc){
+                  return res.status(404).json({
+                      message: 'Tweet was not found'
+                  })
+              }
+            })
+
+            TweetModel.findByIdAndUpdate({
+              _id: tweetId
+            }, {
+              $inc: {likes: 1}
+            },{
+              returnDocument: 'after'
+            }, (err, doc) => {
+              if(err){
+                return res.status(500).json({
+                    message: "Couldn't like the tweet"
+                }) 
+              }
+  
+              if(!doc){
+                  return res.status(404).json({
+                      message: 'Tweet was not found'
+                  })
+              }
+            })
+
+            res.send();
+          }
+        }
+      } catch (error) {
+        res.status(500).json({
+          status: 'error',
+          message: "Couldn't like the tweet",
+        });
+      }
+    }
+
     async update(req: express.Request, res: express.Response): Promise<void> {
         const user = req.user as UserModelInterface;
     
@@ -156,6 +268,34 @@ class TweetController {
           });
         }
     }
+
+    async addComment(req: express.Request, res: express.Response): Promise<void> {
+  
+      try {
+        const user = req.user as UserModelInterface;
+        if (user) {
+          const tweetId = req.params.id;
+  
+          const doc = new CommentModel({
+            text: req.body.text,
+            user,
+            tweet: tweetId
+          })
+
+          const comment = await doc.save()
+
+          res.json(
+            comment
+          )
+
+        }
+      } catch (error) {
+        res.status(500).json({
+          status: 'error',
+          message: error,
+        });
+      }
+  }
     
 }
 

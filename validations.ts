@@ -25,3 +25,7 @@ export const createTweetValidation = [
 export const updateProfileValidation = [
     body('fullname', 'Type your name').isLength({min: 3})
 ]
+
+export const addCommentValidation = [
+    body('text', 'Maximum text length is 280').isString().isLength({min: 1, max: 280}),
+]

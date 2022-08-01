@@ -16,7 +16,7 @@ export const ModalBlock: React.FC<ModalBlockProps> = ({title, children, visible,
   }
 
   return (
-    <Dialog open={visible} onClose={onClose} aria-labelledby="form-dialog-title">
+    <Dialog open={visible} onClose={onClose} aria-labelledby="form-dialog-title" style = {{overflow: 'hidden'}}>
     <DialogTitle id="form-dialog-title" style = {{padding: '16px', display: 'flex', alignItems: 'center'}}>
         <IconButton onClick={onClose} color="secondary" aria-label="close">
           <CloseIcon style={{ fontSize: 26, marginRight: 20 }} color="secondary" />
@@ -25,7 +25,7 @@ export const ModalBlock: React.FC<ModalBlockProps> = ({title, children, visible,
           {title}
         </Typography>
     </DialogTitle>
-    <DialogContent>{children}</DialogContent>
+    <DialogContent style = {{overflowX: 'hidden'}}>{children}</DialogContent>
   </Dialog>
 
   )

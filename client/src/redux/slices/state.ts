@@ -18,6 +18,7 @@ export interface Tweet {
     _id: string,
     createdAt: string;
     text: string,
+    likes: number;
     images: string[],
     user: {
         _id?: string;
@@ -30,7 +31,8 @@ export interface Tweet {
 export interface TweetState { 
     tweetsItems: Tweet[];
     addFormState: AddFormState;
-    loadingState: LoadingState
+    loadingState: LoadingState;
+    comments: Comment[];
 }
 
 // Tags
@@ -54,8 +56,10 @@ export interface User{
     fullname: string;
     username: string;
     confirmed: boolean;
-    tweets?: object[],
+    likedPosts?: Tweet[];
+    tweets?: Tweet[],
     avatarUrl?: string;
+    bannerUrl?: string;
     location?: string;
     about?:string;
     website?: string;
@@ -78,4 +82,18 @@ export interface Login{
 export interface RandomUsersState { 
     usersItems: User[] | [];
     loadingState: LoadingState
+}
+
+// Comments
+
+export interface Comment {
+    _id: string;
+    text: string;
+    createdAt: string;
+    user: {
+        _id?: string;
+        fullname: string;
+        username: string;
+        avatarUrl: string;
+    }
 }

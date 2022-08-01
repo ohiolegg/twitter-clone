@@ -4,6 +4,7 @@ import { generateMD5 } from "../utils/generateHash"
 import { sendEmail } from "../utils/sendEmail"
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import TweetModel from "../models/TweetModel"
 
 class UserController {
     async index(req: express.Request, res: express.Response) : Promise<void> {
@@ -32,7 +33,14 @@ class UserController {
                 return
             }
             const user = await UserModel.findById(id).populate('tweets').exec()
-            
+            const tweets = await TweetModel.find({user: id}).exec()
+
+            const likedTweets = await TweetModel.find({
+                _id: {
+                    $in : user?.likedPosts
+                }
+            }).exec()
+
             if(!user){
                 res.status(404).json({
                     message: "Couldn't find the user"
@@ -41,7 +49,9 @@ class UserController {
             }
 
             res.json({
-                user
+                user,
+                tweets,
+                likedTweets
             })
             
         }catch(err){
@@ -107,6 +117,8 @@ class UserController {
                 location: req.body.location,
                 about: req.body.about,
                 website: req.body.website,    
+                avatarUrl: req.body.avatarUrl, 
+                bannerUrl: req.body.bannerUrl,
             })
 
             res.json({

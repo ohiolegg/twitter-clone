@@ -93,6 +93,13 @@ export const useHomeStyles = makeStyles((theme: Theme) => ({
     },  
     fullTweet: {
       padding: 22,
+      paddingBottom: 0
+    },
+    grayText: {
+      color: "gray",
+      '&:hover': {
+        color: 'rgb(249, 24, 128)',
+      },
     },
     fullTweetText: {
       fontSize: 24,
@@ -223,7 +230,9 @@ export const useHomeStyles = makeStyles((theme: Theme) => ({
         display: 'flex',
         alignItems: 'center',
       },
-
+      tweetBack: {
+        padding: '20px 20px',
+      },
       profileMenu: {
         top: 'auto !important',
         left: '17.5% !important',

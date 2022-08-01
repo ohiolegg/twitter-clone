@@ -12,8 +12,9 @@ import { Avatar, IconButton, Menu, MenuItem, Paper, Typography } from '@mui/mate
 import { Link, useNavigate } from 'react-router-dom';
 import { formatDate } from '../../utils/formatDate';
 import ImageList from '../ImageList'
-import { useAppDispatch } from '../../hooks/redux'
-import { removeTweet } from '../../redux/slices/tweetSlice'
+import { useAppDispatch, useAppSelector } from '../../hooks/redux'
+import { addLike, removeTweet } from '../../redux/slices/tweetSlice'
+import { fetchAddLike } from '../../redux/slices/tweetSlice'
 
 interface TweetProps {
   text: string;
@@ -22,6 +23,7 @@ interface TweetProps {
   createdAt: string;
   isEditable: boolean;
   images?: string[];
+  likes: number;
   user: {
     _id?: string;
     fullname: string;
@@ -36,30 +38,43 @@ export const Tweet: React.FC<TweetProps> = ({
   user,
   _id,
   isEditable,
+  likes,
   classes,
   images
 }: TweetProps): React.ReactElement => {
 
-  let navigate = useNavigate();
+  let navigate = useNavigate()
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
+  const [liked, setLiked] = React.useState<boolean>(false)
+  const open = Boolean(anchorEl)
   const dispatch = useAppDispatch()
+  const likedPosts = useAppSelector(state => state.auth.data ? state.auth.data.likedPosts : false)
+
+  React.useEffect(() => {
+    if(!likedPosts){
+      return
+    }
+
+    if(likedPosts.find(item => String(item) === _id)){
+      setLiked(true)
+    } 
+  }, [])
 
   const handleClickTweet = (event: React.MouseEvent<HTMLAnchorElement>): void => {
     event.preventDefault();
-    navigate(`/home/tweet/${_id}`);
+    navigate(`/home/tweet/${_id}`)
   };
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    event.stopPropagation();
-    event.preventDefault();
-    setAnchorEl(event.currentTarget);
+    event.stopPropagation()
+    event.preventDefault()
+    setAnchorEl(event.currentTarget)
   };
 
   const handleClose = (event: React.MouseEvent<HTMLElement>): void => {
-    event.stopPropagation();
-    event.preventDefault();
-    setAnchorEl(null);
+    event.stopPropagation()
+    event.preventDefault()
+    setAnchorEl(null)
   };
 
   const handleRemove = (event: React.MouseEvent<HTMLElement>): void => {
@@ -69,13 +84,28 @@ export const Tweet: React.FC<TweetProps> = ({
     }
   };
 
+  const likeHandler = async (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation()
+    event.preventDefault()
+    if(liked){
+      dispatch(addLike({_id, n: -1}))
+      dispatch(fetchAddLike(_id))
+    }
+
+    if(!liked){
+      dispatch(addLike({_id, n: 1}))
+      dispatch(fetchAddLike(_id))
+    }
+    setLiked(!liked)
+  }
+
   return (
-    <a onClick={handleClickTweet} className={classes.tweetWrapper} href={`/home/tweet/${_id}`}>
+    <a className={classes.tweetWrapper}>
       <Paper className={classNames(classes.tweet, classes.tweetsHeader)} variant="outlined">
         
         <div className={classes.tweetHeader}>
             <div style ={{display: 'flex', alignItems: 'center'}}>
-            <Avatar className={classes.tweetAvatar} alt={`Аватарка пользователя ${user.fullname}`} />
+            <Avatar className={classes.tweetAvatar} src = {user?.avatarUrl} alt={`Аватарка пользователя ${user.fullname}`} />
               <b>{user.fullname}</b>&nbsp;
               <span className={classes.tweetUserName}>@{user.username}</span>&nbsp;
               <span className={classes.tweetUserName}>·</span>&nbsp;
@@ -116,7 +146,7 @@ export const Tweet: React.FC<TweetProps> = ({
               <IconButton>
                 <CommentIcon style={{ fontSize: 20 }} />
               </IconButton>
-              <span>1</span>
+              <span className={classes.grayText}>1</span>
             </div>
             <div>
               <IconButton>
@@ -124,9 +154,10 @@ export const Tweet: React.FC<TweetProps> = ({
               </IconButton>
             </div>
             <div>
-              <IconButton>
-                <LikeIcon style={{ fontSize: 20 }} />
+              <IconButton sx={{ "&:hover": {color: 'rgb(249, 24, 128)', backgroundColor: 'rgb(249, 24, 128, 0.20)' } }} onClick = {likeHandler}>
+                <LikeIcon style={{ fontSize: 20, color: liked ? 'rgb(249, 24, 128)' : '', fill: liked ? 'rgb(249, 24, 128)' : ''}}/> 
               </IconButton>
+              <span style={{color: liked ? 'rgb(249, 24, 128)' : 'gray'}}>{likes}</span>
             </div>
             <div>
               <IconButton>

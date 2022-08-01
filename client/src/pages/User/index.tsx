@@ -18,8 +18,7 @@ export const UserPage: React.FC = () => {
   const { loadingState } = useAppSelector(state => state.tweets)
   const dispatch = useAppDispatch()
   const [activeTab, setActiveTab] = React.useState<number>(0)
-  const [userData, setUserData] = React.useState<User | undefined>()
-  const [tweets, setTweets] = React.useState<TweetType[] | undefined>()
+  const [userData, setUserData] = React.useState<any | undefined>()
   const { id } = useParams()
   const isloading = loadingState === LoadingState.LOADING
   const [visibleChangeProfile, setVisibleChangeProfile] = React.useState<boolean>(false)
@@ -35,18 +34,21 @@ export const UserPage: React.FC = () => {
   React.useEffect(() => {
     if (id) {
         axios.get(`/users/${id}`).then(({data}) => {
-            setUserData(data.user)
+            setUserData(data)
         })
-
-        axios.get(`/tweets/user/${id}`).then(({data}) => {
-          setTweets(data.tweets)
-      })
+          
     }
   }, [dispatch, id])
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     setActiveTab(newValue);
   }
+
+  if(!userData){
+    return null
+  }
+
+  console.log(userData)
 
   return (
     <Paper className={classNames(classes.tweetsWrapper, 'user')} variant="outlined">
@@ -56,15 +58,17 @@ export const UserPage: React.FC = () => {
         <div>
           <Typography variant="h6">{userData?.fullname}</Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            {tweets ? tweets.length : 0} твита
+            {userData.tweets ? userData.tweets.length : 0} твита
           </Typography>
         </div>
       </Paper>
 
-      <div className="user__header"></div>
+      <Paper className="user__header" style = {{backgroundColor: '#E6ECF0', backgroundImage: `url(${userData?.bannerUrl})`, backgroundSize: 'cover', backgroundPosition: 'center'}}> 
+        
+      </Paper>
 
       <div className="user__info">
-        <Avatar src = {userData?.avatarUrl}/>
+        <Avatar src = {userData.user?.avatarUrl}/>
         <div className='user__info-wrapper'>
           <div>
             {!userData ? (
@@ -116,11 +120,15 @@ export const UserPage: React.FC = () => {
           <div className={classes.tweetsCentred}>
             <CircularProgress />
           </div>
-        ) : (
-            tweets && tweets.map((tweet) => (
+        ) : activeTab === 0  ? (
+          userData.tweets && userData.tweets.map((tweet : TweetType) => (
                 <Tweet key={tweet._id} classes={classes} isEditable = {userData ? userData._id === tweet._id : false} {...tweet} />
           ))
-        )}
+        ) : activeTab === 3  ?(
+          userData.likedTweets && userData.likedTweets.map((tweet: TweetType) => (
+                <Tweet key={tweet._id} classes={classes} isEditable = {userData ? userData._id === tweet._id : false} {...tweet} />
+          ))
+        ) : ''}
       </div>
 
       <ModalBlock title = {'Change your profile'} onClose={onCloseChangeProfile} visible={visibleChangeProfile}>

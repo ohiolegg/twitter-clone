@@ -19,6 +19,8 @@ export const theme = createTheme({
     primary: {
       main: 'rgb(29, 161, 242)',
       dark: 'rgb(26, 145, 218)',
+      grey: 'rgb(83, 100, 113)',
+      pinky: 'rgb(249, 24, 128)',
       contrastText: '#fff',
     },
     secondary: {

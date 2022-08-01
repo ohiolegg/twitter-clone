@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { axios } from "../../core/axios";
-import { AuthState, LoadingState, Login, User } from "./state";
+import { AuthState, LoadingState, Login, Tweet, User } from "./state";
 
 const initialState : AuthState = {
     data: null,
@@ -55,7 +55,12 @@ const authSlice = createSlice({
         },
         setAuthGlobalLoading: (state, action: PayloadAction<LoadingState>) => {
             state.globalLoadingState = action.payload;
-        }
+        },
+/*         setLikedPosts: (state, action: PayloadAction<Tweet[]>) => {
+            if(state.data){
+                state.data.likedPosts = action.payload;
+            }
+        } */
     },
     extraReducers: (builder) => {
         builder

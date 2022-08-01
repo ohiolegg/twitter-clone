@@ -7,7 +7,7 @@ import { TweetCtrl } from './controllers/TweetController'
 import { UserCtrl } from './controllers/UserController'
 import { passport } from './core/passport'
 import handleValidationErrors from './utils/handleValidationErrors'
-import { createTweetValidation, registerValidation, updateProfileValidation } from './validations'
+import { addCommentValidation, createTweetValidation, registerValidation, updateProfileValidation } from './validations'
 import cors from 'cors'
 import multer from 'multer'
 import bodyParser from 'body-parser'
@@ -39,6 +39,8 @@ app.get('/tweets/user/:id', TweetCtrl.getUserTweets)
 app.delete('/tweets/:id', passport.authenticate('jwt', { session:false}), TweetCtrl.delete)
 app.post('/tweets', passport.authenticate('jwt', { session:false}), createTweetValidation, handleValidationErrors, TweetCtrl.create)
 app.patch('/tweets/:id', passport.authenticate('jwt', { session:false}), createTweetValidation, handleValidationErrors, TweetCtrl.update)
+app.patch('/likes/:id', passport.authenticate('jwt', { session:false}), TweetCtrl.like)
+app.post('/tweets/comment/:id', passport.authenticate('jwt', { session:false}), addCommentValidation, handleValidationErrors, TweetCtrl.addComment)
 
 app.post('/auth/signup', registerValidation, handleValidationErrors, UserCtrl.create)
 app.get('/auth/verify', UserCtrl.verify)
