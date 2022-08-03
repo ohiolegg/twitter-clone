@@ -33,13 +33,15 @@ class UserController {
                 return
             }
             const user = await UserModel.findById(id).populate('tweets').exec()
-            const tweets = await TweetModel.find({user: id}).exec()
+            const tweets = await TweetModel.find({user: id}).populate('user').exec()
 
             const likedTweets = await TweetModel.find({
                 _id: {
                     $in : user?.likedPosts
                 }
-            }).exec()
+            }).populate('user').exec()
+
+            
 
             if(!user){
                 res.status(404).json({
@@ -181,8 +183,15 @@ class UserController {
     async getUserInfo(req: express.Request, res: express.Response) : Promise<void> {
         try{
             const user = req.user ? (req.user as UserModelDocumentInterface).toJSON() : undefined
+            const markedTweets = await TweetModel.find({
+                _id: {
+                    $in : user?.markedTweets
+                }
+            }).populate('user').exec()
+
             res.json({
-                user
+                ...user,
+                markedTweets
             })
             
         }catch(err){

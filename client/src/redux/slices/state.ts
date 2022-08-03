@@ -19,7 +19,9 @@ export interface Tweet {
     createdAt: string;
     text: string,
     likes: number;
+    marked?: boolean;
     images: string[],
+    liked?: boolean;
     user: {
         _id?: string;
         fullname: string;
@@ -57,6 +59,7 @@ export interface User{
     username: string;
     confirmed: boolean;
     likedPosts?: Tweet[];
+    markedTweets?: Tweet[];
     tweets?: Tweet[],
     avatarUrl?: string;
     bannerUrl?: string;

@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { id } from 'date-fns/locale'
 import {  axios } from '../../core/axios'
+import { addMarked } from './authSlice'
 import {TweetState, LoadingState, Tweet, AddFormState, Comment} from './state'
 
 const initialState: TweetState = {
@@ -106,6 +107,21 @@ export const fetchAddLike = createAsyncThunk<Tweet, string, {rejectValue: string
     } 
 )
 
+export const fetchAddMarked = createAsyncThunk<{type: string, _id: string}, string, {rejectValue: string}>(
+    'tweets/fetchAddMarked', 
+    async function(payload, {rejectWithValue}){
+        if(!payload){
+            return rejectWithValue('Something went wrong')
+        }
+        try{     
+            const { data } = await axios.patch(`/marked/${payload}`)
+            return data
+        }catch(e: any){
+            return rejectWithValue(e.message)
+        }
+    } 
+)
+
 const tweetSlice = createSlice({
     name: 'tweets',
     initialState,
@@ -123,15 +139,18 @@ const tweetSlice = createSlice({
                 if(tweet._id === action.payload._id) {
                     if(action.payload.n === 1){
                         state.tweetsItems[i].likes++
+                        state.tweetsItems[i].liked = true
                     }
 
                     if(action.payload.n === -1){
                         state.tweetsItems[i].likes--
+                        state.tweetsItems[i].liked = false
                     }
                     
                 }
             });
-        }
+        },
+
     },
     extraReducers: (builder) => {
         builder 
@@ -174,6 +193,25 @@ const tweetSlice = createSlice({
             })
             .addCase(addComment.rejected, (state, action) => {
                 state.addFormState = AddFormState.ERROR
+            })
+
+
+            .addCase(fetchAddMarked.fulfilled, (state, action) => {
+                console.log(action.payload)
+                if(action.payload.type === 'unmarked'){
+                    state.tweetsItems.forEach((item, i) => {
+                        if(item._id === action.payload._id){
+                            state.tweetsItems[i].marked = false
+                        }
+                    })
+                }else{
+                    state.tweetsItems.forEach((item, i) => {
+                        if(item._id === action.payload._id){
+                            state.tweetsItems[i].marked = true
+                        }
+                    })
+                }
+
             })
     }
 })

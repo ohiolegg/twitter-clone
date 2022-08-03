@@ -83,12 +83,13 @@ export const SideMenu: React.FC<SideMenuProps> = ({
         <li className={classes.sideMenuListItem}>
           <div>
             <BookmarkIcon className={classes.sideMenuListItemIcon} />
-
-            <Hidden smDown>
-              <Typography className={classes.sideMenuListItemLabel} variant="h6">
-                Закладки
-              </Typography>
+            <Link to = {`/bookmarks/${data?._id}`}>
+              <Hidden smDown>
+                <Typography className={classes.sideMenuListItemLabel} variant="h6">
+                  Закладки
+                </Typography>
             </Hidden>
+            </Link>
 
           </div>
         </li>

@@ -13,6 +13,7 @@ import { LoadingState } from './redux/slices/state'
 import TwitterIcon from '@mui/icons-material/Twitter'
 import { UserPage } from './pages/User'
 import ActivatePage from './pages/ActivatePage'
+import { MarkedTweets } from './pages/MarkedTweets'
 
 function App() {
   const homeClasses = useHomeStyles();
@@ -51,6 +52,7 @@ function App() {
                   <Route path = '/home/tweet/:id' element = {<FullTweet classes = {homeClasses}/>}/>
                   <Route path = '/user/:id' element = {<UserPage/>}/>
                   <Route path = '/user/activate/:hash' element = {<ActivatePage/>}/>
+                  <Route path = '/bookmarks/:id' element = {<MarkedTweets classes = {homeClasses}/>}/>
                 </Route>
               </Routes>
             </ThemeProvider>

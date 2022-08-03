@@ -14,7 +14,8 @@ import { formatDate } from '../../utils/formatDate';
 import ImageList from '../ImageList'
 import { useAppDispatch, useAppSelector } from '../../hooks/redux'
 import { addLike, removeTweet } from '../../redux/slices/tweetSlice'
-import { fetchAddLike } from '../../redux/slices/tweetSlice'
+import { fetchAddLike, fetchAddMarked } from '../../redux/slices/tweetSlice'
+import { removeMark, addMarked } from '../../redux/slices/authSlice'
 
 interface TweetProps {
   text: string;
@@ -22,6 +23,8 @@ interface TweetProps {
   classes: ReturnType<typeof useHomeStyles>;
   createdAt: string;
   isEditable: boolean;
+  marked?: boolean;
+  liked?: boolean;
   images?: string[];
   likes: number;
   user: {
@@ -34,6 +37,8 @@ interface TweetProps {
 
 export const Tweet: React.FC<TweetProps> = ({
   text,
+  liked = false,
+  marked = false,
   createdAt,
   user,
   _id,
@@ -44,21 +49,27 @@ export const Tweet: React.FC<TweetProps> = ({
 }: TweetProps): React.ReactElement => {
 
   let navigate = useNavigate()
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [liked, setLiked] = React.useState<boolean>(false)
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
+  const [anchorEl2, setAnchorEl2] = React.useState<null | HTMLElement>(null)
   const open = Boolean(anchorEl)
+  const open2 = Boolean(anchorEl2)
   const dispatch = useAppDispatch()
-  const likedPosts = useAppSelector(state => state.auth.data ? state.auth.data.likedPosts : false)
 
-  React.useEffect(() => {
-    if(!likedPosts){
-      return
+  const likeHandler = async (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation()
+    event.preventDefault()
+    if(liked){
+      console.log('dizlike')
+      dispatch(addLike({_id, n: -1}))
+      dispatch(fetchAddLike(_id))
     }
 
-    if(likedPosts.find(item => String(item) === _id)){
-      setLiked(true)
-    } 
-  }, [])
+    if(!liked){
+      console.log('like')
+      dispatch(addLike({_id, n: 1}))
+      dispatch(fetchAddLike(_id))
+    }
+  }
 
   const handleClickTweet = (event: React.MouseEvent<HTMLAnchorElement>): void => {
     event.preventDefault();
@@ -84,23 +95,34 @@ export const Tweet: React.FC<TweetProps> = ({
     }
   };
 
-  const likeHandler = async (event: React.MouseEvent<HTMLElement>) => {
+  const handleClick2 = (event: React.MouseEvent<HTMLElement>) => {
     event.stopPropagation()
     event.preventDefault()
-    if(liked){
-      dispatch(addLike({_id, n: -1}))
-      dispatch(fetchAddLike(_id))
+    setAnchorEl2(event.currentTarget)
+  };
+
+  const handleClose2 = (event: React.MouseEvent<HTMLElement>): void => {
+    event.stopPropagation()
+    event.preventDefault()
+    setAnchorEl2(null)
+  };
+
+  const markHandler = async (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation()
+    event.preventDefault()
+    if(marked){
+      dispatch(removeMark(_id))
+      dispatch(fetchAddMarked(_id))
     }
 
-    if(!liked){
-      dispatch(addLike({_id, n: 1}))
-      dispatch(fetchAddLike(_id))
+    if(!marked){
+      dispatch(addMarked(_id))
+      dispatch(fetchAddMarked(_id))
     }
-    setLiked(!liked)
   }
 
   return (
-    <a className={classes.tweetWrapper}>
+    <a className={classes.tweetWrapper} onClick = {handleClickTweet}>
       <Paper className={classNames(classes.tweet, classes.tweetsHeader)} variant="outlined">
         
         <div className={classes.tweetHeader}>
@@ -159,11 +181,34 @@ export const Tweet: React.FC<TweetProps> = ({
               </IconButton>
               <span style={{color: liked ? 'rgb(249, 24, 128)' : 'gray'}}>{likes}</span>
             </div>
+
             <div>
-              <IconButton>
-                <ShareIcon style={{ fontSize: 20 }} />
-              </IconButton>
+              <div>
+                <IconButton onClick = {handleClick2}>
+                  <ShareIcon style={{ fontSize: 20 }} />
+                </IconButton>
+              </div>
+              <Menu anchorEl={anchorEl2} open={open2} onClose={handleClose2}>
+                {isEditable ? (
+                  <>
+                    <MenuItem onClick={handleClose2}>Copy link to tweet</MenuItem>
+                    <MenuItem onClick={() => alert('Fuck you')}>Share the tweet on...</MenuItem>
+                    <MenuItem onClick={handleClose2}>Send in private message</MenuItem>
+                    <MenuItem onClick={markHandler}>{marked ? 'Unmark' : 'Mark'}</MenuItem>
+                  </>
+
+                ): (
+                  <>
+                    <MenuItem onClick={handleClose2}>Copy link to tweet</MenuItem>
+                    <MenuItem onClick={() => alert('Fuck you')}>Share the tweet on...</MenuItem>
+                    <MenuItem onClick={handleClose2}>Send in private message</MenuItem>
+                    <MenuItem onClick={markHandler}>{marked ? 'Unmark' : 'Mark'}</MenuItem>
+                  </>
+                )}
+                
+              </Menu>
             </div>
+
           </div>
         </div>
       </Paper>

@@ -40,6 +40,7 @@ app.delete('/tweets/:id', passport.authenticate('jwt', { session:false}), TweetC
 app.post('/tweets', passport.authenticate('jwt', { session:false}), createTweetValidation, handleValidationErrors, TweetCtrl.create)
 app.patch('/tweets/:id', passport.authenticate('jwt', { session:false}), createTweetValidation, handleValidationErrors, TweetCtrl.update)
 app.patch('/likes/:id', passport.authenticate('jwt', { session:false}), TweetCtrl.like)
+app.patch('/marked/:id', passport.authenticate('jwt', { session:false}), TweetCtrl.marked)
 app.post('/tweets/comment/:id', passport.authenticate('jwt', { session:false}), addCommentValidation, handleValidationErrors, TweetCtrl.addComment)
 
 app.post('/auth/signup', registerValidation, handleValidationErrors, UserCtrl.create)

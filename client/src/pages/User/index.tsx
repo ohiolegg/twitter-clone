@@ -13,12 +13,18 @@ import { Tweet } from '../../components/Tweet'
 import { ModalBlock } from '../../components/Dialog'
 import { ChangeProfileForm } from '../../components/changeProfileForm'
 
+interface IUserData{
+  user: User,
+  likedTweets: TweetType[],
+  tweets: TweetType[]
+}
+
 export const UserPage: React.FC = () => {
   const classes = useHomeStyles();
   const { loadingState } = useAppSelector(state => state.tweets)
   const dispatch = useAppDispatch()
   const [activeTab, setActiveTab] = React.useState<number>(0)
-  const [userData, setUserData] = React.useState<any | undefined>()
+  const [userData, setUserData] = React.useState<IUserData | undefined>()
   const { id } = useParams()
   const isloading = loadingState === LoadingState.LOADING
   const [visibleChangeProfile, setVisibleChangeProfile] = React.useState<boolean>(false)
@@ -34,6 +40,7 @@ export const UserPage: React.FC = () => {
   React.useEffect(() => {
     if (id) {
         axios.get(`/users/${id}`).then(({data}) => {
+          console.log(data)
             setUserData(data)
         })
           
@@ -45,10 +52,10 @@ export const UserPage: React.FC = () => {
   }
 
   if(!userData){
-    return null
+    return <div className={classes.tweetsCentred}>
+    <CircularProgress />
+  </div>
   }
-
-  console.log(userData)
 
   return (
     <Paper className={classNames(classes.tweetsWrapper, 'user')} variant="outlined">
@@ -56,14 +63,14 @@ export const UserPage: React.FC = () => {
         <ArrowBackIcon style = {{marginRight: 15}}/>
 
         <div>
-          <Typography variant="h6">{userData?.fullname}</Typography>
+          <Typography variant="h6">{userData.user?.fullname}</Typography>
           <Typography variant="caption" display="block" gutterBottom>
             {userData.tweets ? userData.tweets.length : 0} твита
           </Typography>
         </div>
       </Paper>
 
-      <Paper className="user__header" style = {{backgroundColor: '#E6ECF0', backgroundImage: `url(${userData?.bannerUrl})`, backgroundSize: 'cover', backgroundPosition: 'center'}}> 
+      <Paper className="user__header" style = {{backgroundColor: '#E6ECF0', backgroundImage: `url(${userData.user?.bannerUrl})`, backgroundSize: 'cover', backgroundPosition: 'center'}}> 
         
       </Paper>
 
@@ -74,12 +81,12 @@ export const UserPage: React.FC = () => {
             {!userData ? (
               <Skeleton variant="text" width={250} height={30} />
             ) : (
-              <h2 className="user__info-fullname">{userData?.fullname}</h2>
+              <h2 className="user__info-fullname">{userData.user?.fullname}</h2>
             )}
             {!userData ? (
               <Skeleton variant="text" width={60} />
             ) : (
-              <span className="user__info-username">@{userData?.username}</span>
+              <span className="user__info-username">@{userData.user?.username}</span>
             )}
           </div>
 
@@ -91,14 +98,14 @@ export const UserPage: React.FC = () => {
         </div>
       
         <p className="user__info-description">
-          {userData?.about}
+          {userData.user?.about}
         </p>
         <ul className="user__info-details">
-          { userData?.location && <li>{userData?.location}</li>}
-          {userData?.website && <>
+          { userData.user?.location && <li>{userData.user?.location}</li>}
+          {userData.user?.website && <>
             <li>
-                <a className="link" href={userData?.website}>
-                {userData?.website}
+                <a className="link" href={userData.user?.website}>
+                {userData.user?.website}
                 </a>
             </li>
             <li>
@@ -122,17 +129,17 @@ export const UserPage: React.FC = () => {
           </div>
         ) : activeTab === 0  ? (
           userData.tweets && userData.tweets.map((tweet : TweetType) => (
-                <Tweet key={tweet._id} classes={classes} isEditable = {userData ? userData._id === tweet._id : false} {...tweet} />
+                <Tweet key={tweet._id} classes={classes} liked = {!userData.likedTweets ? false : Boolean(userData.likedTweets.find(item => item._id === tweet._id))} isEditable = {userData ? userData.user._id === tweet.user._id : false} {...tweet} />
           ))
         ) : activeTab === 3  ?(
           userData.likedTweets && userData.likedTweets.map((tweet: TweetType) => (
-                <Tweet key={tweet._id} classes={classes} isEditable = {userData ? userData._id === tweet._id : false} {...tweet} />
+                <Tweet key={tweet._id} classes={classes} liked = {!userData.likedTweets ? false : Boolean(userData.likedTweets.find(item => item._id === tweet._id))} isEditable = {userData ? userData.user._id === tweet.user._id : false} {...tweet} />
           ))
         ) : ''}
       </div>
 
       <ModalBlock title = {'Change your profile'} onClose={onCloseChangeProfile} visible={visibleChangeProfile}>
-              <ChangeProfileForm userData = {userData}/>
+              <ChangeProfileForm userData = {userData.user}/>
       </ModalBlock>
     </Paper>
   );

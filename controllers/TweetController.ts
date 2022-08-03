@@ -240,6 +240,73 @@ class TweetController {
       }
     }
 
+    async marked(req: express.Request, res: express.Response): Promise<void> {
+      try {
+        const user = req.user as UserModelInterface;
+
+        if (user) {
+          const tweetId = req.params.id
+          
+          if(user.markedTweets.find(item => item.toString() === tweetId)){
+            user.markedTweets.forEach((item, i) => {
+              if(item.toString() === tweetId){
+                UserModel.findByIdAndUpdate({
+                  _id: user._id
+                },{
+                  $pull: { 'markedTweets': user.markedTweets[i]}
+                },{
+                  returnDocument: 'after'
+                }, (err, doc) => {
+                  if(err){
+                    return res.status(500).json({
+                        message: "Couldn't like the tweet"
+                    }) 
+                  }
+      
+                  if(!doc){
+                      return res.status(404).json({
+                          message: 'Tweet was not found'
+                      })
+                  }
+                })
+              }
+            })
+
+            res.send({type: 'unmarked', _id: tweetId});
+          }
+
+          if(!user.markedTweets.find(item => item.toString() === tweetId)){
+            UserModel.findByIdAndUpdate({
+              _id: user._id
+            },{
+              $push: { 'markedTweets': tweetId}
+            },{
+              returnDocument: 'after'
+            }, (err, doc) => {
+              if(err){
+                return res.status(500).json({
+                    message: "Couldn't like the tweet"
+                }) 
+              }
+  
+              if(!doc){
+                  return res.status(404).json({
+                      message: 'Tweet was not found'
+                  })
+              }
+            })
+            
+            res.send({type: 'mark', _id: tweetId});
+          }
+        }
+      } catch (error) {
+        res.status(500).json({
+          status: 'error',
+          message: "Couldn't like the tweet",
+        });
+      }
+    }
+
     async update(req: express.Request, res: express.Response): Promise<void> {
         const user = req.user as UserModelInterface;
     

@@ -1,10 +1,9 @@
-import { CircularProgress, Paper, Typography } from '@mui/material';
+import { CircularProgress, Paper, Typography } from '@mui/material'
 import React from 'react'
-import { useAppSelector } from '../../hooks/redux';
-
-import { useHomeStyles } from '../../pages/Home/theme';
-import { AddTweetForm } from '../AddTweetForm';
-import { Tweet } from '../Tweet';
+import { useAppSelector } from '../../hooks/redux'
+import { useHomeStyles } from '../../pages/Home/theme'
+import { AddTweetForm } from '../AddTweetForm'
+import { Tweet } from '../Tweet'
 
 interface FeedProps {
   classes: ReturnType<typeof useHomeStyles>;
@@ -36,6 +35,8 @@ export const Feed: React.FC<FeedProps> = ({
                 key = {tweet._id}
                 classes={classes} 
                 isEditable = {String(data?._id) === tweet.user._id}
+                liked = {!data?.likedPosts ? false : Boolean(data?.likedPosts.find(item => String(item) === tweet._id))}
+                marked = {!data?.markedTweets ? false : Boolean(data?.markedTweets.find(item => item._id === tweet._id))}
                 {...tweet}/>
               )})
         }

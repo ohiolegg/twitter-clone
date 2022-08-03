@@ -2,19 +2,20 @@ import { Document, model, Schema } from "mongoose"
 
 export interface UserModelInterface {
     _id?: string,
-    email:string
-    fullname:string
-    username:string
-    password:string
-    confirmHash:string
+    email:string,
+    fullname:string,
+    username:string,
+    password:string,
+    confirmHash:string,
+    likedPosts: string[],
+    markedTweets: string[],
     tweets?: string[],
-    location?:string
-    confirmed?: boolean
-    about?:string
+    location?:string,
+    confirmed?: boolean,
+    about?:string,
     website?:string,
     avatarUrl?: string,
     bannerUrl?: string,
-    likedPosts: string[];
 }
 
 export type UserModelDocumentInterface = UserModelInterface & Document
@@ -52,6 +53,10 @@ const UserSchema = new Schema<UserModelInterface>({
         ref: 'Tweet'
     }],
     likedPosts: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Tweet'
+    }],
+    markedTweets: [{
         type: Schema.Types.ObjectId,
         ref: 'Tweet'
     }],

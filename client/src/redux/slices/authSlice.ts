@@ -37,11 +37,26 @@ export const fetchAuthMe = createAsyncThunk<User, undefined, {rejectValue: strin
     async function(__, {rejectWithValue}){
         try{    
             const { data } = await axios.get('/users/me')
-            return data.user
+            return data
         }catch(e: any){
             return rejectWithValue(e.message)
         }
     }
+)
+
+export const addMarked = createAsyncThunk<Tweet, string, {rejectValue: string}>(
+    'tweets/addMarked', 
+    async function(payload, {rejectWithValue}){
+        if(!payload){
+            return rejectWithValue('Something went wrong')
+        }
+        try{     
+            const { data } = await axios.get(`/tweets/${payload}`)
+            return data.tweet
+        }catch(e: any){
+            return rejectWithValue(e.message)
+        }
+    } 
 )
 
 const authSlice = createSlice({
@@ -56,11 +71,12 @@ const authSlice = createSlice({
         setAuthGlobalLoading: (state, action: PayloadAction<LoadingState>) => {
             state.globalLoadingState = action.payload;
         },
-/*         setLikedPosts: (state, action: PayloadAction<Tweet[]>) => {
+        removeMark: (state, action: PayloadAction<string>) => {
             if(state.data){
-                state.data.likedPosts = action.payload;
+                state.data.markedTweets = state.data?.markedTweets?.filter(item => item._id !== action.payload)
             }
-        } */
+            console.log(state.data?.markedTweets?.filter(item => item._id !== action.payload))
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -108,11 +124,18 @@ const authSlice = createSlice({
             .addCase(fetchAuthMe.rejected, (state, action) => {
                 state.globalLoadingState = LoadingState.ERROR
             })
+
+
+            .addCase(addMarked.fulfilled, (state, action) => {
+                action.payload.marked = true
+                console.log(action.payload)
+                state.data?.markedTweets?.unshift(action.payload)
+            })
     }   
 })
 
 export const selectIsAuth = ( state : any) => Boolean(state.auth.data)
 
-export const { signOut, setAuthGlobalLoading } = authSlice.actions
+export const { signOut, setAuthGlobalLoading, removeMark } = authSlice.actions
 
 export default authSlice.reducer
